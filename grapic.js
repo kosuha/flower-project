@@ -22,21 +22,60 @@ function setLight() {
     light.position.set(-1, 2, 4); // 위치 설정
     scene.add(light); // 장면에 추가
 }
-    
+
 const boxWidth = 1; // 가로 세로 높이 지정
 const boxHeight = 1;
 const boxDepth = 1;
 const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth); // 기하학 객체 생성
-const material = new THREE.MeshPhongMaterial({ color: 0x44aa88 }); // 머터리얼 생성
-const cube = new THREE.Mesh(geometry, material); // 기하학 객체와 머터리얼을 적용한 매쉬 생성
-scene.add(cube); // 장면에 추가
 
-// 회전
+// 큐브를 만드는 함수
+function makeInstance(geometry, color, x) {
+    const material = new THREE.MeshPhongMaterial({ color });
+
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    cube.position.x = x;
+
+    return cube;
+}
+
+// 큐브의 배열
+const cubes = [
+    makeInstance(geometry, 0x44aa88, 0),
+    makeInstance(geometry, 0x8844aa, -2),
+    makeInstance(geometry, 0xaa8844, 2),
+];
+
+// 렌더링한 사이즈에 변경이 필요한지(canvas의 크기에 변화가 있는지) 검사하는 함수
+function resizeRendererToDisplaySize(renderer) {
+    const canvas = renderer.domElement;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    const needResize = canvas.width !== width || canvas.height !== height;
+    if (needResize) {
+        renderer.setSize(width, height, false);
+    }
+    return needResize;
+}
+
+// 회전 반복
 function render(time) {
     time *= 0.001;  // 정육면체의 X, Y축 회전값을 현재 시간값으로 설정
 
-    cube.rotation.x = time; // radians
-    cube.rotation.y = time;
+    // canvas의 크기에 따라 카메라 비율을 변경
+    if (resizeRendererToDisplaySize(renderer)) {
+        const renderCanvas = renderer.domElement;
+        camera.aspect = renderCanvas.clientWidth / renderCanvas.clientHeight;
+        camera.updateProjectionMatrix();
+    }
+
+    cubes.forEach((cube, ndx) => {
+        const speed = 1 + ndx * .1;
+        const rot = time * speed;
+        cube.rotation.x = rot;
+        cube.rotation.y = rot;
+    });
 
     renderer.render(scene, camera); // 렌더링
 
