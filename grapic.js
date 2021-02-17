@@ -9,10 +9,10 @@ const near = 0.1; // 카메라 앞에 렌더링되는 공간 범위 (near에서 
 const far = 5;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far); // 카메라 생성
 
-camera.position.z = 2; // 카메라 포지션 조정 (기본: xyz가 0이며 -z를 바라본다)
+camera.position.z = 3; // 카메라 포지션 조정 (기본: xyz가 0이며 -z를 바라본다)
 
 const scene = new THREE.Scene(); // 장면 생성
-
+scene.background = new THREE.Color(0xAAAAAA);
 setLight(); // 광원 생성
 
 function setLight() {
@@ -50,8 +50,9 @@ const cubes = [
 // 렌더링한 사이즈에 변경이 필요한지(canvas의 크기에 변화가 있는지) 검사하는 함수
 function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
+    const pixelRatio = window.devicePixelRatio; // 픽셀 비율을 사이즈에 곱하여 성능 개선
+    const width = canvas.clientWidth * pixelRatio | 0;
+    const height = canvas.clientHeight * pixelRatio | 0;
     const needResize = canvas.width !== width || canvas.height !== height;
     if (needResize) {
         renderer.setSize(width, height, false);
