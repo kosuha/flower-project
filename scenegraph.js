@@ -6,46 +6,40 @@ const renderer = new THREE.WebGLRenderer({ canvas });
 const fov = 75; // field of view(시야각)
 const aspect = 2; // canvas의 가로 세로 비율
 const near = 0.1; // 카메라 앞에 렌더링되는 공간 범위 (near에서 far까지 렌더링)
-const far = 5;
+const far = 1000;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far); // 카메라 생성
 
-camera.position.z = 3; // 카메라 포지션 조정 (기본: xyz가 0이며 -z를 바라본다)
+camera.position.set(0, 50, 0); // 카메라 포지션 조정
+camera.up.set(0, 0, 1);
+camera.lookAt(0, 0, 0);
 
 const scene = new THREE.Scene(); // 장면 생성
-scene.background = new THREE.Color(0xAAAAAA);
-setLight(); // 광원 생성
+setLight();
 
+// 회전값을 업데이트할 객체들
+const objects = [];
+
+// 하나의 geometry로 모든 태양, 지구, 달을 생성
+const radius = 1;
+const widthSegments = 6;
+const heightSegments = 6;
+const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+
+const sunMaterial = new THREE.MeshPhongMaterial({ emissive: 0xFFFF00 });
+const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial);
+sunMesh.scale.set(5, 5, 5);  // 태양의 크기를 키움
+scene.add(sunMesh);
+objects.push(sunMesh);
+
+renderer.render(scene, camera); // 렌더링
+
+// 빛 설정하는 함수
 function setLight() {
     const color = 0xFFFFFF; // 색
-    const intensity = 1; // 강도
-    const light = new THREE.DirectionalLight(color, intensity); // 광원 생성
-    light.position.set(-1, 2, 4); // 위치 설정
+    const intensity = 3; // 강도
+    const light = new THREE.PointLight(color, intensity); // 광원 생성
     scene.add(light); // 장면에 추가
 }
-
-const boxWidth = 1; // 가로 세로 높이 지정
-const boxHeight = 1;
-const boxDepth = 1;
-const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth); // 기하학 객체 생성
-
-// 큐브를 만드는 함수
-function makeInstance(geometry, color, x) {
-    const material = new THREE.MeshPhongMaterial({ color });
-
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-
-    cube.position.x = x;
-
-    return cube;
-}
-
-// 큐브의 배열
-const cubes = [
-    makeInstance(geometry, 0x44aa88, 0),
-    makeInstance(geometry, 0x8844aa, -2),
-    makeInstance(geometry, 0xaa8844, 2),
-];
 
 // 렌더링한 사이즈에 변경이 필요한지(canvas의 크기에 변화가 있는지) 검사하는 함수
 function resizeRendererToDisplaySize(renderer) {
@@ -71,11 +65,8 @@ function render(time) {
         camera.updateProjectionMatrix();
     }
 
-    cubes.forEach((cube, ndx) => {
-        const speed = 1 + ndx * .1;
-        const rot = time * speed;
-        cube.rotation.x = rot;
-        cube.rotation.y = rot;
+    objects.forEach((obj) => {
+        obj.rotation.y = time;
     });
 
     renderer.render(scene, camera); // 렌더링
